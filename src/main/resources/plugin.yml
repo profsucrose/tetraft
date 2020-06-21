@@ -1,0 +1,11 @@
+name: Tetraft
+version: ${project.version}
+main: dev.profsucrose.tetraft.Tetraft
+api-version: 1.13
+commands:
+  tetris:
+    description: Start a game of Tetris!
+  _left:
+    description: Internal command
+  _right:
+    description: Internal command
