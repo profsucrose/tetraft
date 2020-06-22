@@ -1,35 +1,24 @@
 package dev.profsucrose.tetraft.commands;
 
+import dev.profsucrose.tetraft.Tetraft;
+import dev.profsucrose.tetraft.Utils;
 import dev.profsucrose.tetraft.models.Tetromino;
 import dev.profsucrose.tetraft.models.TetrominoType;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.entity.Player;
 
 public class Board {
     private static int[] wellBottomLeftCornerXYZ = new int[] { -5, 5, -12 };
-    private static Material[] blockTable = new Material[]{
-            /* Z    */     Material.RED_CONCRETE,
-            /* S    */     Material.LIME_CONCRETE,
-            /* I    */     Material.LIGHT_BLUE_CONCRETE,
-            /* T    */     Material.PURPLE_CONCRETE,
-            /* O    */     Material.YELLOW_CONCRETE,
-            /* L    */     Material.ORANGE_CONCRETE,
-            /* J    */     Material.BLUE_CONCRETE,
-            /* None */     Material.AIR
-    };
-
-    private TetrominoType[][] board = new TetrominoType[20][10];
-
-    private static Material typeToMaterial(TetrominoType t) {
-        return blockTable[t.ordinal()];
-    }
+    public TetrominoType[][] board = new TetrominoType[20][10];
 
     public void setBlock(int x, int y, TetrominoType t) {
-        Bukkit.getWorld("world").getBlockAt(
+        Utils.placeTetrominoTypeAsBlock(
+                "world",
                 wellBottomLeftCornerXYZ[0] + x,
                 wellBottomLeftCornerXYZ[1] + y,
-                wellBottomLeftCornerXYZ[2]
-        ).setType(typeToMaterial(t));
+                wellBottomLeftCornerXYZ[2],
+                t
+        );
     }
 
     public void set(int x, int y, TetrominoType t) {
@@ -42,6 +31,38 @@ public class Board {
 
     public TetrominoType get(int x, int y) {
         return board[y][x];
+    }
+
+    public int clearLines(Player player) {
+        int linesCleared = 0;
+        for (int y = 19; y >= 0; y--) {
+            boolean lineCleared = true;
+            for (int x = 0; x < 10; x++) {
+                if (get(x, y) == TetrominoType.Empty) {
+                    lineCleared = false;
+                    break;
+                }
+            }
+
+            if (lineCleared) {
+                linesCleared++;
+
+                for (int k = y; k < 19; k++) {
+                    for (int j = 0; j < 10; j++) {
+                        board[k][j] = board[k + 1][j];
+                    }
+                }
+
+                Bukkit.getScheduler().scheduleSyncDelayedTask(Tetraft.plugin, new Runnable() {
+                    @Override
+                    public void run() {
+                        player.playNote(player.getEyeLocation(), Instrument.BIT, Note.flat(1, Note.Tone.A));
+                    }
+                }, (long) linesCleared * 5);
+            }
+        }
+
+        return linesCleared;
     }
 
     public void setPieceBlocks(Tetromino piece, TetrominoType type) {
@@ -81,12 +102,29 @@ public class Board {
         }
     }
 
-    public Board() {
+    public void clearBoard() {
         for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 10; x++) {
-                setBlock(x, y, TetrominoType.Empty);
+            for (int x = 0; x < 10; x++)
                 set(x, y, TetrominoType.Empty);
-            }
         }
+    }
+
+    public void clearBoardBlocks() {
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 10; x++)
+                setBlock(x, y, TetrominoType.Empty);
+        }
+    }
+
+    public void setBoardBlocks() {
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 10; x++)
+                setBlock(x, y, get(x, y));
+        }
+    }
+
+    public Board() {
+        clearBoard();
+        clearBoardBlocks();
     }
 }
