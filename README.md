@@ -1,3 +1,3 @@
 # tetraft
 
-Source code for a Minecraft Tetris plugin
+Source code for a (singleplayer-only right now) Minecraft Tetris network
